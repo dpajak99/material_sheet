@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+import 'package:sheets/core/config/sheet_constants.dart';
 import 'package:sheets/core/sheet_properties.dart';
 import 'package:sheets/utils/extensions/int.dart';
 import 'package:sheets/utils/numeric_index_mixin.dart';
@@ -30,6 +32,8 @@ sealed class SheetIndex with EquatableMixin {
   }
 
   SheetIndex toRealIndex(SheetProperties properties);
+
+  Rect getSheetCoordinates(SheetProperties properties);
 
   CellIndex toCellIndex() {
     return switch (this) {
@@ -82,6 +86,27 @@ class CellIndex extends SheetIndex {
     return CellIndex(rowIndex: realRowIndex, columnIndex: realColumnIndex);
   }
 
+  @override
+  Rect getSheetCoordinates(SheetProperties properties) {
+    double x = 0;
+    for (int i = 0; i < columnIndex.value; i++) {
+      double columnWidth = properties.getColumnWidth(ColumnIndex(i));
+      x += columnWidth;
+    }
+
+    double width = properties.getColumnWidth(columnIndex);
+
+    double y = 0;
+    for (int i = 0; i < rowIndex.value; i++) {
+      double rowHeight = properties.getRowHeight(RowIndex(i));
+      y += rowHeight;
+    }
+
+    double height = properties.getRowHeight(rowIndex);
+
+    return Rect.fromLTWH(x, y, width, height);
+  }
+
   CellIndex move(int row, int column) {
     return CellIndex(
       rowIndex: RowIndex(rowIndex.value + row),
@@ -118,6 +143,19 @@ class ColumnIndex extends SheetIndex with NumericIndexMixin implements Comparabl
     } else {
       return this;
     }
+  }
+
+  @override
+  Rect getSheetCoordinates(SheetProperties properties) {
+    double x = 0;
+    for (int i = 0; i < value; i++) {
+      double columnWidth = properties.getColumnWidth(ColumnIndex(i));
+      x += columnWidth;
+    }
+
+    double width = properties.getColumnWidth(this);
+
+    return Rect.fromLTWH(x, 0, width, columnHeadersHeight);
   }
 
   ColumnIndex operator -(int number) {
@@ -186,6 +224,19 @@ class RowIndex extends SheetIndex with NumericIndexMixin implements Comparable<R
   @override
   int get value => _value;
 
+  @override
+  Rect getSheetCoordinates(SheetProperties properties) {
+    double y = 0;
+    for (int i = 0; i < value; i++) {
+      double rowHeight = properties.getRowHeight(RowIndex(i));
+      y += rowHeight;
+    }
+
+    double height = properties.getRowHeight(this);
+
+    return Rect.fromLTWH(0, y, rowHeadersWidth, height);
+  }
+
   RowIndex move(int number) {
     return RowIndex(value + number);
   }
@@ -197,6 +248,10 @@ class RowIndex extends SheetIndex with NumericIndexMixin implements Comparable<R
   @override
   String stringifyPosition() {
     return (value + 1).toString();
+  }
+
+  RowIndex operator +(int number) {
+    return RowIndex(value + number);
   }
 
   @override

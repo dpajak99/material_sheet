@@ -58,7 +58,7 @@ class _VerticalHeadersResizerLayerState extends State<_VerticalHeadersResizerLay
       fit: StackFit.expand,
       children: _visibleColumns.map((ViewportColumn column) {
         return _VerticalHeaderResizer(
-          height: widget.sheetController.viewport.visibleGridOuterRect.height,
+          height: widget.sheetController.viewport.height,
           column: column,
           onResize: (Offset delta) => widget.sheetController.resizeColumnBy(column.index, delta.dx),
         );
@@ -91,19 +91,18 @@ class _VerticalHeaderResizerState extends State<_VerticalHeaderResizer> {
 
   @override
   Widget build(BuildContext context) {
-    Rect columnRect = widget.column.viewportRect;
+    Rect columnRect = widget.column.rect;
     double marginTop = columnRect.top + (columnRect.height - _kLength) / 2;
     double dividerWidth = _kGapSize + _kWeight * 2;
 
     return Positioned(
-      top: widget.column.viewportRect.top,
-      left: widget.column.viewportRect.right - (_kGapSize / 2) - _kWeight + _dragDelta,
+      top: widget.column.rect.top,
+      left: widget.column.rect.right - (_kGapSize / 2) - _kWeight + _dragDelta,
       bottom: 0,
       width: dividerWidth,
       child: SheetDraggable(
-        scrollOnDrag: false,
         limitDragToBounds: true,
-        dragBarrierStart: Offset(widget.column.viewportRect.left + 20, 0),
+        dragBarrierStart: Offset(widget.column.rect.left + 20, 0),
         onDragDeltaChanged: _handleDragDeltaChanged,
         onDragEnd: (Offset offset) {
           widget.onResize(offset);
@@ -169,7 +168,7 @@ class _HorizontalHeadersResizerLayerState extends State<_HorizontalHeadersResize
       fit: StackFit.expand,
       children: _visibleRows.map((ViewportRow row) {
         return _HorizontalHeaderResizer(
-          width: widget.sheetController.viewport.visibleGridOuterRect.width,
+          width: widget.sheetController.viewport.width,
           row: row,
           onResize: (Offset delta) => widget.sheetController.resizeRowBy(row.index, delta.dy),
         );
@@ -202,19 +201,18 @@ class _HorizontalHeaderResizerState extends State<_HorizontalHeaderResizer> {
 
   @override
   Widget build(BuildContext context) {
-    Rect rowRect = widget.row.viewportRect;
+    Rect rowRect = widget.row.rect;
     double marginLeft = rowRect.left + (rowRect.width - _kLength) / 2;
     double dividerHeight = _kGapSize + _kWeight * 2;
 
     return Positioned(
-      top: widget.row.viewportRect.bottom - (_kGapSize / 2) - _kWeight + _dragDelta,
+      top: widget.row.rect.bottom - (_kGapSize / 2) - _kWeight + _dragDelta,
       left: 0,
       right: 0,
       height: dividerHeight,
       child: SheetDraggable(
-        scrollOnDrag: false,
         limitDragToBounds: true,
-        dragBarrierStart: Offset(0, widget.row.viewportRect.top + 20),
+        dragBarrierStart: Offset(0, widget.row.rect.top + 20),
         onDragDeltaChanged: _handleDragDeltaChanged,
         onDragEnd: (Offset offset) {
           widget.onResize(offset);

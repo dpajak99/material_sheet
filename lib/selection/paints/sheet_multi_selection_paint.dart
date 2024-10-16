@@ -29,6 +29,6 @@ class SheetMultiSelectionPaint extends SheetSelectionPaint {
       return;
     }
 
-    paintMainCell(canvas, selectedCell.viewportRect);
+    paintMainCell(canvas, selectedCell.rect);
   }
 }

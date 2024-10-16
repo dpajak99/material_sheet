@@ -71,9 +71,16 @@ class SheetScrollController extends ChangeNotifier {
   }
 
   void scrollTo(Offset offset) {
-    print('Scrolling to $offset');
     position.horizontal.offset = offset.dx;
     position.vertical.offset = offset.dy;
+  }
+
+  void scrollToVertical(double offset) {
+    position.vertical.offset = offset;
+  }
+
+  void scrollToHorizontal(double offset) {
+    position.horizontal.offset = offset;
   }
 
   void setViewportSize(Size size) {

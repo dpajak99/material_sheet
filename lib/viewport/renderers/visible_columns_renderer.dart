@@ -1,89 +1,93 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:sheets/core/config/sheet_constants.dart';
 import 'package:sheets/core/scroll/sheet_scroll_position.dart';
+import 'package:sheets/viewport/sheet_viewport_rect.dart';
 import 'package:sheets/viewport/viewport_item.dart';
 import 'package:sheets/core/sheet_item_index.dart';
 import 'package:sheets/core/sheet_properties.dart';
 import 'package:sheets/utils/directional_values.dart';
-import 'package:sheets/utils/first_visible.dart';
 
-/// [VisibleColumnsRenderer] is responsible for determining and building the
-/// list of visible columns in the sheet based on the current viewport size,
-/// sheet properties, and scroll position.
-///
-/// It calculates the first visible column and iterates through the columns to
-/// add them to the list of visible columns until the viewport width is filled.
 class VisibleColumnsRenderer {
-  /// The rectangle representing the current viewport area.
-  final Rect viewportRect;
-
-  /// The properties of the sheet, which include details like column count and styles.
+  final SheetViewportRect viewportRect;
   final SheetProperties properties;
-
-  /// The current scroll position in both horizontal and vertical directions.
   final DirectionalValues<SheetScrollPosition> scrollPosition;
 
-  /// Creates a [VisibleColumnsRenderer] that calculates which columns are
-  /// visible within the viewport based on the provided [viewportRect],
-  /// [properties], and [scrollPosition].
   VisibleColumnsRenderer({
     required this.viewportRect,
     required this.properties,
     required this.scrollPosition,
   });
 
-  /// Builds and returns a list of [ViewportColumn] objects representing
-  /// the columns visible in the current viewport.
-  ///
-  /// It calculates the first visible column and iterates through the columns
-  /// to create their viewport configurations, stopping when the viewport width
-  /// is filled or there are no more columns.
   List<ViewportColumn> build() {
+    double firstVisibleCoordinate = scrollPosition.horizontal.offset;
+    _FirstVisibleColumnInfo firstVisibleColumnInfo = _findColumnByX(firstVisibleCoordinate);
+
+    double maxContentWidth = viewportRect.width - rowHeadersWidth;
+    double currentContentWidth = -firstVisibleColumnInfo.hiddenWidth;
+
     List<ViewportColumn> visibleColumns = <ViewportColumn>[];
+    int index = firstVisibleColumnInfo.index.value;
 
-    FirstVisible<ColumnIndex> firstColumn = _calculateFirstVisible();
-
-    double currentWidth = firstColumn.hiddenSize;
-    int index = 0;
-
-    while (currentWidth < viewportRect.width && firstColumn.index.value + index < properties.columnCount) {
-      ColumnIndex columnIndex = ColumnIndex(firstColumn.index.value + index);
+    while (currentContentWidth < maxContentWidth && index < properties.columnCount - 1) {
+      ColumnIndex columnIndex = ColumnIndex(index);
       ColumnStyle columnStyle = properties.getColumnStyle(columnIndex);
 
       ViewportColumn viewportColumn = ViewportColumn(
         index: columnIndex,
         style: columnStyle,
-        viewportRect: Rect.fromLTWH(currentWidth + rowHeadersWidth, 0, columnStyle.width, columnHeadersHeight),
+        rect: Rect.fromLTWH(currentContentWidth + rowHeadersWidth, 0, columnStyle.width, columnHeadersHeight),
       );
-
       visibleColumns.add(viewportColumn);
+      currentContentWidth += viewportColumn.style.width;
 
-      currentWidth += viewportColumn.style.width;
       index++;
     }
 
     return visibleColumns;
   }
 
-  /// Calculates and returns the first visible column based on the current
-  /// horizontal scroll position.
-  ///
-  /// It also calculates how much of the first visible column is hidden due to
-  /// overscroll.
-  FirstVisible<ColumnIndex> _calculateFirstVisible() {
-    double contentWidth = 0;
-    int hiddenColumns = 0;
+  _FirstVisibleColumnInfo _findColumnByX(double x) {
+    int actualColumnIndex = 0;
+    double currentWidthStart = 0;
 
-    while (contentWidth < scrollPosition.horizontal.offset) {
-      hiddenColumns++;
-      contentWidth += properties.getColumnWidth(ColumnIndex(hiddenColumns));
+    _FirstVisibleColumnInfo? firstVisibleColumnInfo;
+
+    while (firstVisibleColumnInfo == null) {
+      ColumnIndex columnIndex = ColumnIndex(actualColumnIndex);
+      ColumnStyle columnStyle = properties.getColumnStyle(columnIndex);
+      double columnWidthEnd = currentWidthStart + columnStyle.width;
+
+      if (x >= currentWidthStart && x < columnWidthEnd) {
+        firstVisibleColumnInfo = _FirstVisibleColumnInfo(
+          index: columnIndex,
+          startCoordinate: currentWidthStart,
+          visibleWidth: columnWidthEnd - x,
+          hiddenWidth: x - currentWidthStart,
+        );
+      } else {
+        actualColumnIndex++;
+        currentWidthStart = columnWidthEnd;
+      }
     }
 
-    double columnWidth = properties.getColumnWidth(ColumnIndex(hiddenColumns));
-    double horizontalOverscroll = scrollPosition.horizontal.offset - contentWidth;
-
-    double hiddenWidth = (horizontalOverscroll != 0) ? (-columnWidth - horizontalOverscroll) : 0;
-
-    return FirstVisible<ColumnIndex>(ColumnIndex(hiddenColumns), hiddenWidth);
+    return firstVisibleColumnInfo;
   }
+}
+
+class _FirstVisibleColumnInfo with EquatableMixin {
+  final ColumnIndex index;
+  final double startCoordinate;
+  final double visibleWidth;
+  final double hiddenWidth;
+
+  const _FirstVisibleColumnInfo({
+    required this.index,
+    required this.startCoordinate,
+    required this.visibleWidth,
+    required this.hiddenWidth,
+  });
+
+  @override
+  List<Object?> get props => <Object?>[index, startCoordinate, visibleWidth, hiddenWidth];
 }

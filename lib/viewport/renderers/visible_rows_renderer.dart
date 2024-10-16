@@ -1,6 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:sheets/core/config/sheet_constants.dart';
 import 'package:sheets/core/scroll/sheet_scroll_position.dart';
+import 'package:sheets/viewport/sheet_viewport_rect.dart';
 import 'package:sheets/viewport/viewport_item.dart';
 import 'package:sheets/core/sheet_item_index.dart';
 import 'package:sheets/core/sheet_properties.dart';
@@ -15,7 +17,7 @@ import 'package:sheets/utils/first_visible.dart';
 /// to the list of visible rows until the viewport height is filled.
 class VisibleRowsRenderer {
   /// The rectangle representing the current viewport area.
-  final Rect viewportRect;
+  final SheetViewportRect viewportRect;
 
   /// The properties of the sheet, such as row heights, row count, and styles.
   final SheetProperties properties;
@@ -39,49 +41,75 @@ class VisibleRowsRenderer {
   /// their viewport configurations, stopping when the viewport height is filled
   /// or there are no more rows.
   List<ViewportRow> build() {
+    double firstVisibleCoordinate = scrollPosition.vertical.offset;
+    _FirstVisibleRowInfo firstVisibleRowInfo = _findRowByY(firstVisibleCoordinate);
+
+    double maxContentHeight = viewportRect.height - columnHeadersHeight;
+    double currentContentHeight = -firstVisibleRowInfo.hiddenHeight;
+
     List<ViewportRow> visibleRows = <ViewportRow>[];
+    int index = firstVisibleRowInfo.index.value;
 
-    FirstVisible<RowIndex> firstVisibleRowInfo = _calculateFirstVisible();
-
-    double currentHeight = firstVisibleRowInfo.hiddenSize;
-    int index = 0;
-
-    while (currentHeight < viewportRect.height && firstVisibleRowInfo.index.value + index < properties.rowCount) {
-      RowIndex rowIndex = RowIndex(firstVisibleRowInfo.index.value + index);
+    while (currentContentHeight < maxContentHeight && index < properties.rowCount - 1) {
+      RowIndex rowIndex = RowIndex(index);
       RowStyle rowStyle = properties.getRowStyle(rowIndex);
 
       ViewportRow viewportRow = ViewportRow(
         index: rowIndex,
         style: rowStyle,
-        viewportRect:  Rect.fromLTWH(0, currentHeight + columnHeadersHeight, rowHeadersWidth, rowStyle.height),
+        rect: Rect.fromLTWH(0, currentContentHeight + columnHeadersHeight, rowHeadersWidth, rowStyle.height),
       );
       visibleRows.add(viewportRow);
+      currentContentHeight += viewportRow.style.height;
 
       index++;
-      currentHeight += viewportRow.style.height;
     }
+
+    print('Last visible row: ${visibleRows.last.index.stringifyPosition()}');
     return visibleRows;
   }
 
-  /// Calculates and returns the first visible row based on the current
-  /// vertical scroll position.
-  ///
-  /// It also calculates how much of the first visible row is hidden due to
-  /// overscroll.
-  FirstVisible<RowIndex> _calculateFirstVisible() {
-    double contentHeight = 0;
-    int hiddenRows = 0;
+  _FirstVisibleRowInfo _findRowByY(double y) {
+    int actualRowIndex = 0;
+    double currentHeightStart = 0;
 
-    while (contentHeight < scrollPosition.vertical.offset) {
-      hiddenRows++;
-      contentHeight += properties.getRowHeight(RowIndex(hiddenRows));
+    _FirstVisibleRowInfo? firstVisibleRowInfo;
+
+    while (firstVisibleRowInfo == null) {
+      RowIndex rowIndex = RowIndex(actualRowIndex);
+      RowStyle rowStyle = properties.getRowStyle(rowIndex);
+      double rowHeightEnd = currentHeightStart + rowStyle.height;
+
+      if (y >= currentHeightStart && y < rowHeightEnd) {
+        firstVisibleRowInfo = _FirstVisibleRowInfo(
+          index: rowIndex,
+          startCoordinate: currentHeightStart,
+          visibleHeight: rowHeightEnd - y,
+          hiddenHeight: y - currentHeightStart,
+        );
+      } else {
+        actualRowIndex++;
+        currentHeightStart = rowHeightEnd;
+      }
     }
 
-    double rowHeight = properties.getRowHeight(RowIndex(hiddenRows));
-    double verticalOverscroll = scrollPosition.vertical.offset - contentHeight;
-
-    double hiddenHeight = (verticalOverscroll != 0) ? (-rowHeight - verticalOverscroll) : 0;
-
-    return FirstVisible<RowIndex>(RowIndex(hiddenRows), hiddenHeight);
+    return firstVisibleRowInfo;
   }
+}
+
+class _FirstVisibleRowInfo with EquatableMixin {
+  final RowIndex index;
+  final double startCoordinate;
+  final double visibleHeight;
+  final double hiddenHeight;
+
+  const _FirstVisibleRowInfo({
+    required this.index,
+    required this.startCoordinate,
+    required this.visibleHeight,
+    required this.hiddenHeight,
+  });
+
+  @override
+  List<Object?> get props => <Object?>[index, startCoordinate, visibleHeight, hiddenHeight];
 }

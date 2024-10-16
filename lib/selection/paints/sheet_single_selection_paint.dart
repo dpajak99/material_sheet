@@ -19,11 +19,11 @@ class SheetSingleSelectionPaint extends SheetSelectionPaint {
     if (selectedCell == null) return;
 
     if (mainCellVisible) {
-      paintMainCell(canvas, selectedCell.viewportRect);
+      paintMainCell(canvas, selectedCell.rect);
     } else {
-      paintSelectionBorder(canvas, selectedCell.viewportRect);
+      paintSelectionBorder(canvas, selectedCell.rect);
     }
 
-    if (backgroundVisible) paintSelectionBackground(canvas, selectedCell.viewportRect);
+    if (backgroundVisible) paintSelectionBackground(canvas, selectedCell.rect);
   }
 }

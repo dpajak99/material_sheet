@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:sheets/controller/sheet_scroll_controller.dart';
 import 'package:sheets/core/scroll/sheet_scroll_position.dart';
@@ -7,8 +5,8 @@ import 'package:sheets/core/sheet_item_index.dart';
 import 'package:sheets/core/sheet_properties.dart';
 import 'package:sheets/utils/directional_values.dart';
 import 'package:sheets/viewport/sheet_viewport_content.dart';
+import 'package:sheets/viewport/sheet_viewport_rect.dart';
 import 'package:sheets/viewport/viewport_item.dart';
-import 'package:sheets/viewport/viewport_offset_transformer.dart';
 
 /// [SheetViewport] is responsible for managing the visible content within the
 /// viewport of the sheet and ensuring that content updates when the scroll
@@ -30,11 +28,7 @@ class SheetViewport extends ChangeNotifier {
   /// Stores the current scroll position in both horizontal and vertical directions.
   late DirectionalValues<SheetScrollPosition> _scrollPosition;
 
-  /// The rectangle representing the current viewport area.
-  Rect _viewportRect = Rect.zero;
-
-  /// Returns the current rectangle defining the viewport area.
-  Rect get viewportRect => _viewportRect;
+  late SheetViewportRect viewportRect;
 
   /// Creates a [SheetViewport] that updates visible content based on the
   /// provided [properties] and [scrollController].
@@ -46,10 +40,11 @@ class SheetViewport extends ChangeNotifier {
     _scrollPosition = _scrollController.position;
     _scrollController.applyProperties(properties);
 
-    visibleContent.applyProperties(_properties);
-    visibleContent.rebuild(_viewportRect, _scrollPosition);
+    viewportRect = SheetViewportRect(Rect.zero);
 
+    visibleContent.applyProperties(_properties);
     visibleContent.addListener(notifyListeners);
+
     _properties.addListener(() => _updateSheetProperties(_properties));
     _scrollController.addListener(() => _updateScrollPosition(_scrollController));
   }
@@ -63,78 +58,61 @@ class SheetViewport extends ChangeNotifier {
     super.dispose();
   }
 
-  /// Returns the rectangle representing the visible portion of the grid within
-  /// the viewport.
-  ///
-  /// This is determined by comparing the viewport's bounds with the visible
-  /// rows and columns of the sheet.
-  Rect get visibleGridInnerRect {
-    return Rect.fromLTRB(
-      max(visibleContent.columns.first.viewportRect.left, viewportRect.left),
-      min(visibleContent.rows.first.viewportRect.top, viewportRect.top),
-      min(visibleContent.columns.last.viewportRect.right, viewportRect.right),
-      min(visibleContent.rows.last.viewportRect.bottom, viewportRect.bottom),
-    );
+  double get width => viewportRect.width;
+
+  double get height => viewportRect.height;
+
+  Rect get innerRectLocal {
+    return viewportRect.innerRectLocal;
   }
 
-  Rect get visibleGridOuterRect {
-    return Rect.fromLTRB(
-      max(visibleContent.rows.first.viewportRect.left, viewportRect.left),
-      min(visibleContent.columns.first.viewportRect.top, viewportRect.top),
-      min(visibleContent.columns.last.viewportRect.right, viewportRect.right),
-      min(visibleContent.rows.last.viewportRect.bottom, viewportRect.bottom),
-    );
+  Rect get outerRectLocal {
+    return viewportRect.local;
   }
 
-  /// Converts the given [globalOffset], which is relative to the entire sheet,
-  /// to a local offset relative to the visible grid within the viewport.
   Offset globalOffsetToLocal(Offset globalOffset) {
-    ViewportOffsetTransformer transformer = ViewportOffsetTransformer(viewportRect, visibleGridInnerRect);
-    return transformer.globalToLocal(globalOffset);
+    return viewportRect.globalOffsetToLocal(globalOffset);
   }
 
   /// Sets the viewport rectangle to the given [rect], and rebuilds the visible
   /// content if the viewport size has changed.
   void setViewportRect(Rect rect) {
-    if (rect == viewportRect) return;
-    _viewportRect = rect;
+    if (viewportRect.isEquivalent(rect)) return;
+
+    viewportRect = SheetViewportRect(rect);
+    visibleContent.rebuild(viewportRect, _scrollPosition);
+
     _scrollController.setViewportSize(rect.size);
-    visibleContent.rebuild(_viewportRect, _scrollPosition);
   }
 
   void ensureIndexFullyVisible(SheetIndex index) {
-    ViewportCell viewportCell = visibleContent.findCellOrClosest(index.toCellIndex()).value;
     Offset scrollOffset = _scrollController.offset;
 
-    Rect itemRect = viewportCell.getSheetPosition(scrollOffset);
-    Rect sheetRect = visibleGridInnerRect.shift(scrollOffset);
+    Rect sheetCoords = index.getSheetCoordinates(_properties);
+    double sheetHeight = viewportRect.innerRectLocal.height;
+    double sheetWidth = viewportRect.innerRectLocal.width;
 
-    double leftDelta = sheetRect.left - itemRect.left;
-    double rightDelta = itemRect.right - sheetRect.right;
-    double topDelta = sheetRect.top - itemRect.top;
-    double bottomDelta = itemRect.bottom - sheetRect.bottom;
+    double topMargin = sheetCoords.top;
+    double bottomMargin = sheetCoords.bottom;
+    double leftMargin = sheetCoords.left;
+    double rightMargin = sheetCoords.right;
 
-    if(leftDelta > 0) {
-      print('leftDelta: $leftDelta');
+    if(topMargin < scrollOffset.dy) {
+      _scrollController.scrollToVertical(sheetCoords.top + 1);
+    } else if(bottomMargin > scrollOffset.dy + sheetHeight) {
+      _scrollController.scrollToVertical(sheetCoords.bottom - sheetHeight + 1);
+    } else if(leftMargin < scrollOffset.dx) {
+      _scrollController.scrollToHorizontal(sheetCoords.left + 1);
+    } else if(rightMargin > scrollOffset.dx + sheetWidth) {
+      _scrollController.scrollToHorizontal(sheetCoords.right - sheetWidth + 1);
     }
-    if(rightDelta > 0) {
-      print('rightDelta: $rightDelta');
-    }
-    if(topDelta > 0) {
-      print('topDelta: $topDelta');
-    }
-    if(bottomDelta > 0) {
-      print('bottomDelta: $bottomDelta');
-    }
-
-    // _scrollController.scrollTo(newOffset);
   }
 
   /// Updates the scroll position of the viewport when the [scrollController]
   /// notifies a change, and rebuilds the visible content accordingly.
   void _updateScrollPosition(SheetScrollController scrollController) {
     _scrollPosition = scrollController.position;
-    visibleContent.rebuild(_viewportRect, _scrollPosition);
+    visibleContent.rebuild(viewportRect, _scrollPosition);
   }
 
   /// Updates the sheet properties and rebuilds the visible content whenever
@@ -143,6 +121,6 @@ class SheetViewport extends ChangeNotifier {
     _scrollController.applyProperties(sheetProperties);
 
     visibleContent.applyProperties(sheetProperties);
-    visibleContent.rebuild(_viewportRect, _scrollPosition);
+    visibleContent.rebuild(viewportRect, _scrollPosition);
   }
 }

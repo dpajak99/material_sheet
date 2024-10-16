@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sheets/utils/extensions/offset_extensions.dart';
 
 /// [ViewportOffsetTransformer] is responsible for transforming a global offset
 /// (from the entire application) into a local offset relative to the visible grid
@@ -9,24 +8,22 @@ import 'package:sheets/utils/extensions/offset_extensions.dart';
 /// boundaries of the visible grid.
 class ViewportOffsetTransformer {
   /// The rectangle representing the entire sheet area.
-  final Rect sheetRect;
-
-  /// The rectangle representing the visible area of the grid within the viewport.
-  final Rect visibleGridRect;
+  final Rect globalRect;
 
   /// Creates a [ViewportOffsetTransformer] that converts global offsets to
-  /// local ones, using the provided [sheetRect] and [visibleGridRect].
-  ViewportOffsetTransformer(this.sheetRect, this.visibleGridRect);
+  /// local ones, using the provided [globalRect] and [visibleGridRect].
+  ViewportOffsetTransformer(this.globalRect);
 
   /// Transforms the given [globalOffset], which is relative to the entire sheet,
   /// into a local offset relative to the visible grid.
   ///
   /// The resulting local offset is limited to the bounds of the [visibleGridRect].
   Offset globalToLocal(Offset globalOffset) {
-    Offset localOffset = globalOffset - Offset(sheetRect.left, sheetRect.top);
-    return localOffset.limit(
-      Offset(0, visibleGridRect.right),
-      Offset(0, visibleGridRect.bottom),
+    Offset localOffset = Offset(globalOffset.dx - globalRect.left, globalOffset.dy - globalRect.top);
+
+    return Offset(
+      localOffset.dx.clamp(0, globalRect.width),
+      localOffset.dy.clamp(0, globalRect.height),
     );
   }
 }

@@ -14,7 +14,6 @@ class SheetDraggable extends StatefulWidget {
   final Positioned? Function(bool hovered, bool dragged)? builder;
   final Widget? child;
   final Offset? dragBarrierStart;
-  final bool scrollOnDrag;
   final bool limitDragToBounds;
 
   const SheetDraggable({
@@ -27,7 +26,6 @@ class SheetDraggable extends StatefulWidget {
     this.builder,
     this.child,
     this.dragBarrierStart,
-    this.scrollOnDrag = true,
     this.limitDragToBounds = false,
     super.key,
   }) : dragCursor = dragCursor ?? cursor;
@@ -80,9 +78,6 @@ class _SheetDraggableState extends State<SheetDraggable> {
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    if (widget.scrollOnDrag == false) {
-      mouse.disableScrollOnDrag();
-    }
     mouse.disable();
     mouse.setCursor(widget.cursor);
     mouse.setGlobalOffset(event.position);
@@ -97,13 +92,10 @@ class _SheetDraggableState extends State<SheetDraggable> {
 
     _onPanUpdate(event);
 
-    if (widget.scrollOnDrag && mouse.mouseOutOffset != Offset.zero) {
-      _panHoldRecognizer.start(() => _handlePointerMove(event));
-    }
+    _panHoldRecognizer.start(() => _handlePointerMove(event));
   }
 
   void _handlePointerUp(PointerUpEvent details) {
-    mouse.enableScrollOnDrag();
     _onPanEnd();
     _resetCursor();
   }
@@ -114,13 +106,13 @@ class _SheetDraggableState extends State<SheetDraggable> {
   }
 
   void _onPanUpdate(PointerMoveEvent event) {
-    bool barrierStartReached = widget.dragBarrierStart != null && (event.position.dy < widget.dragBarrierStart!.dy || event.position.dx < widget.dragBarrierStart!.dx);
+    bool barrierStartReached =
+        widget.dragBarrierStart != null && (event.position.dy < widget.dragBarrierStart!.dy || event.position.dx < widget.dragBarrierStart!.dx);
     bool barrierEndReached = false;
 
-    if(widget.limitDragToBounds) {
-      Offset dragBarrierEnd = Offset(mouse.viewport.visibleGridInnerRect.right, mouse.viewport.visibleGridInnerRect.bottom);
+    if (widget.limitDragToBounds) {
+      Offset dragBarrierEnd = Offset(mouse.viewport.innerRectLocal.right, mouse.viewport.innerRectLocal.bottom);
       barrierEndReached = event.position.dy > dragBarrierEnd.dy || event.position.dx > dragBarrierEnd.dx;
-
     }
 
     if (barrierStartReached || barrierEndReached) {

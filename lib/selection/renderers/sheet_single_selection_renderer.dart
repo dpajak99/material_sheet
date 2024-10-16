@@ -20,7 +20,7 @@ class SheetSingleSelectionRenderer extends SheetSelectionRenderer<SheetSingleSel
   bool get fillHandleVisible => selection.isCompleted == true;
 
   @override
-  Offset? get fillHandleOffset => selectedCell?.viewportRect.bottomRight;
+  Offset? get fillHandleOffset => selectedCell?.rect.bottomRight;
 
   @override
   SheetSelectionPaint getPaint({bool? mainCellVisible, bool? backgroundVisible}) {

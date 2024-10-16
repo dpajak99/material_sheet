@@ -24,13 +24,6 @@ class SheetMouseListener {
   final ValueNotifier<SystemMouseCursor> cursor = ValueNotifier<SystemMouseCursor>(SystemMouseCursors.basic);
 
   bool _enabled = true;
-  bool _scrollOnDragDisabled = false;
-
-  bool get scrollOnDragDisabled => _scrollOnDragDisabled;
-
-  void disableScrollOnDrag() => _scrollOnDragDisabled = true;
-
-  void enableScrollOnDrag() => _scrollOnDragDisabled = false;
 
   void disable() => _enabled = false;
 
@@ -54,44 +47,10 @@ class SheetMouseListener {
     globalPosition.value = globalOffset;
 
     refreshHoveredItem();
-
-    if (scrollOnDragDisabled == false) {
-      Offset mouseOutOffset = this.mouseOutOffset;
-      if (mouseOutOffset != Offset.zero) {
-        _addGesture(SheetMouseBoundsScrollGesture(mouseOutOffset), force: true);
-      }
-    }
   }
 
   void refreshHoveredItem() {
     hoveredItem.value = viewport.visibleContent.findAnyByOffset(localPosition.value);
-  }
-
-  Offset get mouseOutOffset {
-    double globalY = globalPosition.value.dy;
-    double globalX = globalPosition.value.dx;
-
-    double viewportTop = viewport.viewportRect.top;
-    double viewportBottom = viewport.viewportRect.bottom;
-    double viewportLeft = viewport.viewportRect.left;
-    double viewportRight = viewport.viewportRect.right;
-
-    double outX = 0;
-    double outY = 0;
-
-    if (globalY < viewportTop) {
-      outY = globalY - viewportTop;
-    } else if (globalY > viewportBottom) {
-      outY = globalY - viewportBottom;
-    }
-
-    if (globalX < viewportLeft) {
-      outX = globalX - viewportLeft;
-    } else if (globalX > viewportRight) {
-      outX = globalX - viewportRight;
-    }
-
-    return Offset(outX, outY);
   }
 
   void setCursor(SystemMouseCursor systemMouseCursor) {

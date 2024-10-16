@@ -10,10 +10,6 @@ abstract class SheetScrollPhysics {
   }
 
   Offset parseScrolledOffset(Offset currentOffset, Offset delta);
-
-  double get horizontalViewport => _scrollController.metrics.horizontal.viewportDimension;
-
-  double get verticalViewport => _scrollController.metrics.vertical.viewportDimension;
 }
 
 class SmoothScrollPhysics extends SheetScrollPhysics {

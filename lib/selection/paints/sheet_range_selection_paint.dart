@@ -19,7 +19,7 @@ class SheetRangeSelectionPaint<T extends SheetIndex> extends SheetSelectionPaint
     SelectionRect? selectionRect = renderer.selectionRect;
     if (selectionRect == null) return;
 
-    if (mainCellVisible && renderer.mainCell != null) paintMainCell(canvas, renderer.mainCell!.viewportRect);
+    if (mainCellVisible && renderer.mainCell != null) paintMainCell(canvas, renderer.mainCell!.rect);
     if (backgroundVisible) paintSelectionBackground(canvas, selectionRect);
 
     if (renderer.selection.isCompleted) {

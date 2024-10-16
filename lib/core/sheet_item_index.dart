@@ -31,6 +31,14 @@ sealed class SheetIndex with EquatableMixin {
 
   SheetIndex toRealIndex(SheetProperties properties);
 
+  CellIndex toCellIndex() {
+    return switch (this) {
+      CellIndex cellIndex => cellIndex,
+      ColumnIndex columnIndex => CellIndex.fromColumnMin(columnIndex),
+      RowIndex rowIndex => CellIndex.fromRowMin(rowIndex),
+    };
+  }
+
   @override
   String toString() {
     return stringifyPosition();

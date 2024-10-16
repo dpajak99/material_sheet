@@ -19,15 +19,18 @@ class SheetSelectionStartGesture extends SheetDragGesture {
     SheetIndex? hoveredIndex = startDetails.hoveredItem?.index;
     if (hoveredIndex == null) return;
 
+
     if (controller.keyboard.areKeysPressed(<LogicalKeyboardKey>[LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.shiftLeft])) {
-      return ModifySelectionRangeBehavior(hoveredIndex).invoke(controller);
+      ModifySelectionRangeBehavior(hoveredIndex).invoke(controller);
     } else if (controller.keyboard.isKeyPressed(LogicalKeyboardKey.controlLeft)) {
-      return AppendSelectionBehavior(hoveredIndex).invoke(controller);
+      AppendSelectionBehavior(hoveredIndex).invoke(controller);
     } else if (controller.keyboard.isKeyPressed(LogicalKeyboardKey.shiftLeft)) {
-      return RangeSelectionBehavior(hoveredIndex).invoke(controller);
+      RangeSelectionBehavior(hoveredIndex).invoke(controller);
     } else {
-      return SingleSelectionBehavior(hoveredIndex).invoke(controller);
+      SingleSelectionBehavior(hoveredIndex).invoke(controller);
     }
+
+    controller.viewport.ensureIndexFullyVisible(hoveredIndex);
   }
 }
 
@@ -55,6 +58,8 @@ class SheetSelectionUpdateGesture extends SheetDragUpdateGesture {
     } else {
       RangeSelectionBehavior(hoveredIndex).invoke(controller);
     }
+
+    controller.viewport.ensureIndexFullyVisible(hoveredIndex);
   }
 }
 
@@ -81,15 +86,17 @@ class SheetSelectionMoveGesture extends SheetDragGesture {
     SheetSelection selection = controller.selection.value;
 
     CellIndex maxIndex = CellIndex.max.toRealIndex(controller.properties);
+    CellIndex newIndex;
 
     if (controller.keyboard.isKeyPressed(LogicalKeyboardKey.shiftLeft)) {
-      CellIndex newIndex = selection.cellEnd.move(dx, dy).clamp(maxIndex);
+      newIndex = selection.cellEnd.move(dx, dy).clamp(maxIndex);
       RangeSelectionBehavior(newIndex).invoke(controller);
     } else {
-      CellIndex newIndex = selection.mainCell.move(dx, dy).clamp(maxIndex);
+      newIndex = selection.mainCell.move(dx, dy).clamp(maxIndex);
       SingleSelectionBehavior(newIndex).invoke(controller);
     }
 
+    controller.viewport.ensureIndexFullyVisible(newIndex);
     controller.selection.complete();
   }
 

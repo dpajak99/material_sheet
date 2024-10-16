@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:sheets/core/config/sheet_constants.dart';
 import 'package:sheets/core/scroll/sheet_scroll_physics.dart';
+import 'package:sheets/core/sheet_properties.dart';
 import 'package:sheets/utils/directional_values.dart';
 import 'package:sheets/core/scroll/sheet_axis_direction.dart';
 import 'package:sheets/core/scroll/sheet_scroll_metrics.dart';
@@ -8,19 +10,21 @@ import 'package:sheets/core/scroll/sheet_scroll_position.dart';
 class SheetScrollController extends ChangeNotifier {
   SheetScrollController({
     SheetScrollPhysics? physics,
-}) {
+  }) {
     position = DirectionalValues<SheetScrollPosition>(
       SheetScrollPosition(),
       SheetScrollPosition(),
-    )..addListener(notifyListeners);
+    );
 
     metrics = DirectionalValues<SheetScrollMetrics>(
       SheetScrollMetrics.zero(SheetAxisDirection.vertical),
       SheetScrollMetrics.zero(SheetAxisDirection.horizontal),
-    )..addListener(notifyListeners);
+    );
 
     _physics = (physics ?? SmoothScrollPhysics())..applyTo(this);
 
+    position.addListener(notifyListeners);
+    metrics.addListener(notifyListeners);
   }
 
   late final SheetScrollPhysics _physics;
@@ -39,6 +43,25 @@ class SheetScrollController extends ChangeNotifier {
     super.notifyListeners();
   }
 
+  void applyProperties(SheetProperties properties) {
+    double contentHeight = 0;
+    for (int i = 0; i < properties.rowCount; i++) {
+      double rowHeight = properties.customRowExtents[i] ?? defaultRowHeight;
+      contentHeight += rowHeight;
+    }
+
+    double contentWidth = 0;
+    for (int i = 0; i < properties.columnCount; i++) {
+      double columnWidth = properties.customColumnExtents[i] ?? defaultColumnWidth;
+      contentWidth += columnWidth;
+    }
+
+    metrics.update(
+      horizontal: metrics.horizontal.copyWith(contentSize: contentWidth),
+      vertical: metrics.vertical.copyWith(contentSize: contentHeight),
+    );
+  }
+
   void scrollBy(Offset delta) {
     Offset currentOffset = Offset(position.horizontal.offset, position.vertical.offset);
     Offset newOffset = _physics.parseScrolledOffset(currentOffset, delta);
@@ -47,10 +70,18 @@ class SheetScrollController extends ChangeNotifier {
     position.vertical.offset = newOffset.dy;
   }
 
+  void scrollTo(Offset offset) {
+    print('Scrolling to $offset');
+    position.horizontal.offset = offset.dx;
+    position.vertical.offset = offset.dy;
+  }
+
   void setViewportSize(Size size) {
     metrics.update(
       horizontal: metrics.horizontal.copyWith(viewportDimension: size.width),
       vertical: metrics.vertical.copyWith(viewportDimension: size.height),
     );
   }
+
+  Offset get offset => Offset(position.horizontal.offset, position.vertical.offset);
 }

@@ -161,9 +161,9 @@ class _ColumnHeadersPainter extends _HeadersPainter {
     for (ViewportColumn column in _visibleColumns) {
       SelectionStatus selectionStatus = _selection.isColumnSelected(column.index);
 
-      paintHeadersBackground(canvas, column.rect, selectionStatus);
-      paintHeadersBorder(canvas, column.rect, top: false);
-      paintHeadersLabel(canvas, column.rect, column.value, selectionStatus);
+      paintHeadersBackground(canvas, column.viewportRect, selectionStatus);
+      paintHeadersBorder(canvas, column.viewportRect, top: false);
+      paintHeadersLabel(canvas, column.viewportRect, column.value, selectionStatus);
     }
   }
 
@@ -201,9 +201,9 @@ class _RowHeadersPainter extends _HeadersPainter {
     for (ViewportRow row in _visibleRows) {
       SelectionStatus selectionStatus = _selection.isRowSelected(row.index);
 
-      paintHeadersBackground(canvas, row.rect, selectionStatus);
-      paintHeadersBorder(canvas, row.rect);
-      paintHeadersLabel(canvas, row.rect, row.value, selectionStatus);
+      paintHeadersBackground(canvas, row.viewportRect, selectionStatus);
+      paintHeadersBorder(canvas, row.viewportRect);
+      paintHeadersLabel(canvas, row.viewportRect, row.value, selectionStatus);
     }
   }
 

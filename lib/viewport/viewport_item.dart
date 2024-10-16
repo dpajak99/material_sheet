@@ -4,15 +4,24 @@ import 'package:sheets/core/sheet_item_index.dart';
 import 'package:sheets/core/sheet_properties.dart';
 
 abstract class ViewportItem with EquatableMixin {
-  final Rect rect;
+  final Rect viewportRect;
 
   ViewportItem({
-    required this.rect,
+    required this.viewportRect,
   });
 
   String get value;
 
   SheetIndex get index;
+
+  Rect getSheetPosition(Offset scrollOffset) {
+    return Rect.fromLTWH(
+      viewportRect.left + scrollOffset.dx,
+      viewportRect.top + scrollOffset.dy,
+      viewportRect.width,
+      viewportRect.height,
+    );
+  }
 }
 
 class ViewportRow extends ViewportItem {
@@ -20,7 +29,7 @@ class ViewportRow extends ViewportItem {
   final RowStyle _style;
 
   ViewportRow({
-    required super.rect,
+    required super.viewportRect,
     required RowIndex index,
     required RowStyle style,
   })  : _index = index,
@@ -40,7 +49,7 @@ class ViewportRow extends ViewportItem {
   RowStyle get style => _style;
 
   @override
-  List<Object?> get props => <Object?>[_index, _style, rect];
+  List<Object?> get props => <Object?>[_index, _style, viewportRect];
 }
 
 class ViewportColumn extends ViewportItem {
@@ -48,7 +57,7 @@ class ViewportColumn extends ViewportItem {
   final ColumnStyle _style;
 
   ViewportColumn({
-    required super.rect,
+    required super.viewportRect,
     required ColumnIndex index,
     required ColumnStyle style,
   })  : _index = index,
@@ -82,7 +91,7 @@ class ViewportColumn extends ViewportItem {
   }
 
   @override
-  List<Object?> get props => <Object?>[_index, _style, rect];
+  List<Object?> get props => <Object?>[_index, _style, viewportRect];
 }
 
 class ViewportCell extends ViewportItem {
@@ -92,7 +101,7 @@ class ViewportCell extends ViewportItem {
   final String _value;
 
   ViewportCell({
-    required super.rect,
+    required super.viewportRect,
     required CellIndex index,
     required ViewportRow row,
     required ViewportColumn column,
@@ -108,11 +117,11 @@ class ViewportCell extends ViewportItem {
       row: row,
       column: column,
       index: CellIndex(rowIndex: row.index, columnIndex: column.index),
-      rect: Rect.fromLTWH(
-        column.rect.left,
-        row.rect.top,
-        column.rect.width,
-        row.rect.height,
+      viewportRect: Rect.fromLTWH(
+        column.viewportRect.left,
+        row.viewportRect.top,
+        column.viewportRect.width,
+        row.viewportRect.height,
       ),
     );
   }
@@ -130,5 +139,5 @@ class ViewportCell extends ViewportItem {
   ViewportColumn get column => _column;
 
   @override
-  List<Object?> get props => <Object?>[rect, _index, _row, _column, _value];
+  List<Object?> get props => <Object?>[viewportRect, _index, _row, _column, _value];
 }

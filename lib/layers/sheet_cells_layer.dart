@@ -79,7 +79,7 @@ abstract class _SheetCellsBasePainter extends ChangeNotifier implements CustomPa
       ..isAntiAlias = false
       ..style = PaintingStyle.fill;
 
-    canvas.drawRect(cell.rect, backgroundPaint);
+    canvas.drawRect(cell.viewportRect, backgroundPaint);
   }
 
   void paintCellBorder(Canvas canvas, ViewportCell cell) {
@@ -89,7 +89,7 @@ abstract class _SheetCellsBasePainter extends ChangeNotifier implements CustomPa
       ..isAntiAlias = false
       ..style = PaintingStyle.stroke;
 
-    canvas.drawRect(cell.rect, borderPaint);
+    canvas.drawRect(cell.viewportRect, borderPaint);
   }
 
   void paintCellText(Canvas canvas, ViewportCell cell) {

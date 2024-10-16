@@ -31,13 +31,13 @@ class SheetMouseBoundsScrollGesture extends SheetGesture {
 
   @override
   void resolve(SheetController controller) {
-    if(delta.dx != 0) {
-      int multiplier = delta.dx > 0 ? 1 : -1;
-      controller.scroll.scrollBy(Offset(defaultColumnWidth * multiplier, 0));
-    } else {
-      int multiplier = delta.dy > 0 ? 1 : -1;
-      controller.scroll.scrollBy(Offset(0, defaultRowHeight * multiplier));
-    }
+    // if(delta.dx != 0) {
+    //   int multiplier = delta.dx > 0 ? 1 : -1;
+    //   controller.scroll.scrollBy(Offset(defaultColumnWidth * multiplier, 0));
+    // } else {
+    //   int multiplier = delta.dy > 0 ? 1 : -1;
+    //   controller.scroll.scrollBy(Offset(0, defaultRowHeight * multiplier));
+    // }
   }
 
   @override

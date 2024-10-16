@@ -54,7 +54,7 @@ class SheetViewportContentData {
   /// or `null` if no item is found.
   ViewportItem? findAnyByOffset(Offset mousePosition) {
     try {
-      return all.firstWhere((ViewportItem element) => element.rect.within(mousePosition));
+      return all.firstWhere((ViewportItem element) => element.viewportRect.within(mousePosition));
     } catch (e) {
       return null;
     }

@@ -53,7 +53,7 @@ class VisibleColumnsRenderer {
       ViewportColumn viewportColumn = ViewportColumn(
         index: columnIndex,
         style: columnStyle,
-        rect: Rect.fromLTWH(currentWidth + rowHeadersWidth, 0, columnStyle.width, columnHeadersHeight),
+        viewportRect: Rect.fromLTWH(currentWidth + rowHeadersWidth, 0, columnStyle.width, columnHeadersHeight),
       );
 
       visibleColumns.add(viewportColumn);

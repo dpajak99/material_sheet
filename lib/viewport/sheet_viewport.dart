@@ -3,9 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:sheets/controller/sheet_scroll_controller.dart';
 import 'package:sheets/core/scroll/sheet_scroll_position.dart';
+import 'package:sheets/core/sheet_item_index.dart';
 import 'package:sheets/core/sheet_properties.dart';
 import 'package:sheets/utils/directional_values.dart';
 import 'package:sheets/viewport/sheet_viewport_content.dart';
+import 'package:sheets/viewport/viewport_item.dart';
 import 'package:sheets/viewport/viewport_offset_transformer.dart';
 
 /// [SheetViewport] is responsible for managing the visible content within the
@@ -42,6 +44,7 @@ class SheetViewport extends ChangeNotifier {
       : _scrollController = scrollController,
         _properties = properties {
     _scrollPosition = _scrollController.position;
+    _scrollController.applyProperties(properties);
 
     visibleContent.applyProperties(_properties);
     visibleContent.rebuild(_viewportRect, _scrollPosition);
@@ -67,19 +70,19 @@ class SheetViewport extends ChangeNotifier {
   /// rows and columns of the sheet.
   Rect get visibleGridInnerRect {
     return Rect.fromLTRB(
-      max(visibleContent.columns.first.rect.left, viewportRect.left),
-      min(visibleContent.rows.first.rect.top, viewportRect.top),
-      min(visibleContent.columns.last.rect.right, viewportRect.right),
-      min(visibleContent.rows.last.rect.bottom, viewportRect.bottom),
+      max(visibleContent.columns.first.viewportRect.left, viewportRect.left),
+      min(visibleContent.rows.first.viewportRect.top, viewportRect.top),
+      min(visibleContent.columns.last.viewportRect.right, viewportRect.right),
+      min(visibleContent.rows.last.viewportRect.bottom, viewportRect.bottom),
     );
   }
 
   Rect get visibleGridOuterRect {
     return Rect.fromLTRB(
-      max(visibleContent.rows.first.rect.left, viewportRect.left),
-      min(visibleContent.columns.first.rect.top, viewportRect.top),
-      min(visibleContent.columns.last.rect.right, viewportRect.right),
-      min(visibleContent.rows.last.rect.bottom, viewportRect.bottom),
+      max(visibleContent.rows.first.viewportRect.left, viewportRect.left),
+      min(visibleContent.columns.first.viewportRect.top, viewportRect.top),
+      min(visibleContent.columns.last.viewportRect.right, viewportRect.right),
+      min(visibleContent.rows.last.viewportRect.bottom, viewportRect.bottom),
     );
   }
 
@@ -99,6 +102,34 @@ class SheetViewport extends ChangeNotifier {
     visibleContent.rebuild(_viewportRect, _scrollPosition);
   }
 
+  void ensureIndexFullyVisible(SheetIndex index) {
+    ViewportCell viewportCell = visibleContent.findCellOrClosest(index.toCellIndex()).value;
+    Offset scrollOffset = _scrollController.offset;
+
+    Rect itemRect = viewportCell.getSheetPosition(scrollOffset);
+    Rect sheetRect = visibleGridInnerRect.shift(scrollOffset);
+
+    double leftDelta = sheetRect.left - itemRect.left;
+    double rightDelta = itemRect.right - sheetRect.right;
+    double topDelta = sheetRect.top - itemRect.top;
+    double bottomDelta = itemRect.bottom - sheetRect.bottom;
+
+    if(leftDelta > 0) {
+      print('leftDelta: $leftDelta');
+    }
+    if(rightDelta > 0) {
+      print('rightDelta: $rightDelta');
+    }
+    if(topDelta > 0) {
+      print('topDelta: $topDelta');
+    }
+    if(bottomDelta > 0) {
+      print('bottomDelta: $bottomDelta');
+    }
+
+    // _scrollController.scrollTo(newOffset);
+  }
+
   /// Updates the scroll position of the viewport when the [scrollController]
   /// notifies a change, and rebuilds the visible content accordingly.
   void _updateScrollPosition(SheetScrollController scrollController) {
@@ -109,6 +140,8 @@ class SheetViewport extends ChangeNotifier {
   /// Updates the sheet properties and rebuilds the visible content whenever
   /// the [sheetProperties] change.
   void _updateSheetProperties(SheetProperties sheetProperties) {
+    _scrollController.applyProperties(sheetProperties);
+
     visibleContent.applyProperties(sheetProperties);
     visibleContent.rebuild(_viewportRect, _scrollPosition);
   }

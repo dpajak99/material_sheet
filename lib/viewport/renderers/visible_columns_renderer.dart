@@ -29,7 +29,7 @@ class VisibleColumnsRenderer {
     List<ViewportColumn> visibleColumns = <ViewportColumn>[];
     int index = firstVisibleColumnInfo.index.value;
 
-    while (currentContentWidth < maxContentWidth && index < properties.columnCount - 1) {
+    while (currentContentWidth < maxContentWidth && index < properties.columnCount) {
       ColumnIndex columnIndex = ColumnIndex(index);
       ColumnStyle columnStyle = properties.getColumnStyle(columnIndex);
 

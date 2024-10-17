@@ -7,7 +7,6 @@ import 'package:sheets/viewport/viewport_item.dart';
 import 'package:sheets/core/sheet_item_index.dart';
 import 'package:sheets/core/sheet_properties.dart';
 import 'package:sheets/utils/directional_values.dart';
-import 'package:sheets/utils/first_visible.dart';
 
 /// [VisibleRowsRenderer] is responsible for determining and building the list
 /// of visible rows in the sheet based on the current viewport size, sheet properties,
@@ -50,7 +49,7 @@ class VisibleRowsRenderer {
     List<ViewportRow> visibleRows = <ViewportRow>[];
     int index = firstVisibleRowInfo.index.value;
 
-    while (currentContentHeight < maxContentHeight && index < properties.rowCount - 1) {
+    while (currentContentHeight < maxContentHeight && index < properties.rowCount) {
       RowIndex rowIndex = RowIndex(index);
       RowStyle rowStyle = properties.getRowStyle(rowIndex);
 
@@ -65,7 +64,6 @@ class VisibleRowsRenderer {
       index++;
     }
 
-    print('Last visible row: ${visibleRows.last.index.stringifyPosition()}');
     return visibleRows;
   }
 

@@ -107,10 +107,13 @@ class CellIndex extends SheetIndex {
     return Rect.fromLTWH(x, y, width, height);
   }
 
-  CellIndex move(int row, int column) {
+  CellIndex move(int rowOffset, int columnOffset) {
+    int movedRow = rowIndex.value + rowOffset;
+    int movedColumn = columnIndex.value + columnOffset;
+
     return CellIndex(
-      rowIndex: RowIndex(rowIndex.value + row),
-      columnIndex: ColumnIndex(columnIndex.value + column),
+      rowIndex: RowIndex(movedRow < 0 ? 0 : movedRow),
+      columnIndex: ColumnIndex(movedColumn < 0 ? 0 : movedColumn),
     );
   }
 

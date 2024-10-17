@@ -1,9 +1,6 @@
-import 'dart:math';
-
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:sheets/core/config/sheet_constants.dart';
-import 'package:sheets/viewport/sheet_viewport_content.dart';
 import 'package:sheets/viewport/viewport_offset_transformer.dart';
 import 'package:sheets/viewport/viewport_rect_transformer.dart';
 

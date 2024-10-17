@@ -76,10 +76,16 @@ class SheetScrollController extends ChangeNotifier {
   }
 
   void scrollToVertical(double offset) {
+    if (offset < 0) {
+      offset = 0;
+    }
     position.vertical.offset = offset;
   }
 
   void scrollToHorizontal(double offset) {
+    if (offset < 0) {
+      offset = 0;
+    }
     position.horizontal.offset = offset;
   }
 

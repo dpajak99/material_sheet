@@ -9,10 +9,14 @@ import 'package:sheets/gestures/sheet_gesture.dart';
 import 'package:sheets/gestures/sheet_scroll_gesture.dart';
 import 'package:sheets/viewport/viewport_item.dart';
 
-class SheetMouseListener {
+class SheetMouseListener extends ChangeNotifier {
   final SheetViewport viewport;
 
-  SheetMouseListener(this.viewport);
+  SheetMouseListener(this.viewport) {
+    viewport.addListener(() {
+      refreshHoveredItem();
+    });
+  }
 
   final StreamController<SheetGesture> _gesturesStream = StreamController<SheetGesture>();
 
@@ -20,8 +24,9 @@ class SheetMouseListener {
 
   final ValueNotifier<Offset> localPosition = ValueNotifier<Offset>(Offset.zero);
   final ValueNotifier<Offset> globalPosition = ValueNotifier<Offset>(Offset.zero);
-  final ValueNotifier<ViewportItem?> hoveredItem = ValueNotifier<ViewportItem?>(null);
   final ValueNotifier<SystemMouseCursor> cursor = ValueNotifier<SystemMouseCursor>(SystemMouseCursors.basic);
+
+  ViewportItem? hoveredItem;
 
   bool _enabled = true;
 
@@ -36,8 +41,10 @@ class SheetMouseListener {
   bool nativeDragging = false;
   bool customTapHovered = false;
 
+  @override
   void dispose() {
     _gesturesStream.close();
+    super.dispose();
   }
 
   void setGlobalOffset(Offset globalOffset) {
@@ -50,7 +57,13 @@ class SheetMouseListener {
   }
 
   void refreshHoveredItem() {
-    hoveredItem.value = viewport.visibleContent.findAnyByOffset(localPosition.value);
+    ViewportItem? previousHoveredItem = hoveredItem;
+    ViewportItem? currentHoveredItem = viewport.visibleContent.findAnyByOffset(localPosition.value);
+
+    if (previousHoveredItem != currentHoveredItem) {
+      hoveredItem = currentHoveredItem;
+      notifyListeners();
+    }
   }
 
   void setCursor(SystemMouseCursor systemMouseCursor) {
@@ -72,7 +85,7 @@ class SheetMouseListener {
   void dragUpdate() {
     if (nativeDragging && _activeStartDragDetails != null) {
       _addGesture(SheetDragUpdateGesture(
-        SheetDragDetails.create(globalPosition.value, hoveredItem.value),
+        SheetDragDetails.create(globalPosition.value, hoveredItem),
         startDetails: _activeStartDragDetails!,
       ));
     }
@@ -91,7 +104,7 @@ class SheetMouseListener {
   }
 
   void fillUpdate() {
-    SheetGesture fillUpdateGesture = SheetFillUpdateGesture(endDetails: SheetDragDetails.create(globalPosition.value, hoveredItem.value));
+    SheetGesture fillUpdateGesture = SheetFillUpdateGesture(endDetails: SheetDragDetails.create(globalPosition.value, hoveredItem));
     _addGesture(fillUpdateGesture, force: true);
   }
 

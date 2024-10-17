@@ -6,7 +6,6 @@ import 'package:sheets/core/sheet_properties.dart';
 import 'package:sheets/utils/directional_values.dart';
 import 'package:sheets/viewport/sheet_viewport_content.dart';
 import 'package:sheets/viewport/sheet_viewport_rect.dart';
-import 'package:sheets/viewport/viewport_item.dart';
 
 /// [SheetViewport] is responsible for managing the visible content within the
 /// viewport of the sheet and ensuring that content updates when the scroll
@@ -98,11 +97,11 @@ class SheetViewport extends ChangeNotifier {
     double rightMargin = sheetCoords.right;
 
     if(topMargin < scrollOffset.dy) {
-      _scrollController.scrollToVertical(sheetCoords.top + 1);
+      _scrollController.scrollToVertical(sheetCoords.top - 1);
     } else if(bottomMargin > scrollOffset.dy + sheetHeight) {
       _scrollController.scrollToVertical(sheetCoords.bottom - sheetHeight + 1);
     } else if(leftMargin < scrollOffset.dx) {
-      _scrollController.scrollToHorizontal(sheetCoords.left + 1);
+      _scrollController.scrollToHorizontal(sheetCoords.left - 1);
     } else if(rightMargin > scrollOffset.dx + sheetWidth) {
       _scrollController.scrollToHorizontal(sheetCoords.right - sheetWidth + 1);
     }

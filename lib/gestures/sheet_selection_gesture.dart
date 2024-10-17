@@ -19,7 +19,6 @@ class SheetSelectionStartGesture extends SheetDragGesture {
     SheetIndex? hoveredIndex = startDetails.hoveredItem?.index;
     if (hoveredIndex == null) return;
 
-
     if (controller.keyboard.areKeysPressed(<LogicalKeyboardKey>[LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.shiftLeft])) {
       ModifySelectionRangeBehavior(hoveredIndex).invoke(controller);
     } else if (controller.keyboard.isKeyPressed(LogicalKeyboardKey.controlLeft)) {
@@ -48,6 +47,16 @@ class SheetSelectionUpdateGesture extends SheetDragUpdateGesture {
   void resolve(SheetController controller) {
     SheetIndex? hoveredIndex = endDetails.hoveredItem?.index;
     if (hoveredIndex == null) return;
+
+    SheetSelection selection = controller.selection.value;
+    if (selection.selectionStart is CellIndex) {
+
+      if (hoveredIndex is ColumnIndex) {
+        hoveredIndex = CellIndex(rowIndex: controller.viewport.visibleContent.rows.first.index, columnIndex: hoveredIndex).move(-1, 0);
+      } else if (hoveredIndex is RowIndex) {
+        hoveredIndex = CellIndex(rowIndex: hoveredIndex, columnIndex: controller.viewport.visibleContent.columns.first.index).move(0, -1);
+      }
+    }
 
     if (controller.keyboard.areKeysPressed(<LogicalKeyboardKey>[LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.shiftLeft])) {
       ModifySelectionRangeBehavior(hoveredIndex).invoke(controller);

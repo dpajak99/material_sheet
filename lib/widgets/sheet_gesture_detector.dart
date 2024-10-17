@@ -7,6 +7,7 @@ import 'package:sheets/viewport/sheet_viewport.dart';
 import 'package:sheets/listeners/mouse_listener.dart';
 import 'package:sheets/recognizers/pan_hold_recognizer.dart';
 
+// TODO(dominik): Rename to Selection gesture detector??
 class SheetGestureDetector extends StatefulWidget {
   final SheetController sheetController;
 
@@ -81,23 +82,15 @@ class _SheetGestureDetectorState extends State<SheetGestureDetector> {
     _onPanEnd();
   }
 
-  ViewportItem? notifiedItem;
-
   void _onPanStart() {
-    ViewportItem? hoveredItem = mouseListener.hoveredItem.value;
+    ViewportItem? hoveredItem = mouseListener.hoveredItem;
     if (hoveredItem != null) {
-      notifiedItem = hoveredItem;
       mouseListener.dragStart(hoveredItem);
     }
   }
 
   void _onPanUpdate() {
-    ViewportItem? hoveredItem = mouseListener.hoveredItem.value;
-    if (notifiedItem == hoveredItem) {
-      return;
-    }
     mouseListener.dragUpdate();
-    notifiedItem = hoveredItem;
   }
 
   void _onPanEnd() {

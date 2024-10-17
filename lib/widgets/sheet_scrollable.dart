@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:sheets/controller/sheet_scroll_controller.dart';
 import 'package:sheets/core/config/sheet_constants.dart';
@@ -120,7 +121,14 @@ class _SheetScrollableState extends State<SheetScrollable> {
           SizedBox(width: scrollbarWeight, height: scrollbarWeight),
         ],
       ),
-      child: widget.child,
+      child: Listener(
+        onPointerSignal: (PointerSignalEvent event) {
+          if (event is PointerScrollEvent) {
+            widget.scrollController.scrollBy(event.scrollDelta);
+          }
+        },
+        child: widget.child,
+      ),
     );
   }
 }

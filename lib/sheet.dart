@@ -9,11 +9,11 @@ import 'package:sheets/layers/sheet_headers_layer.dart';
 import 'package:sheets/layers/sheet_headers_resizer_layer.dart';
 import 'package:sheets/layers/sheet_selection_layer.dart';
 import 'package:sheets/core/config/sheet_constants.dart';
-import 'package:sheets/listeners/mouse_listener.dart';
 import 'package:sheets/widgets/sections/sheet_section_details_bar.dart';
 import 'package:sheets/widgets/sections/sheet_section_toolbar.dart';
-import 'package:sheets/widgets/sheet_gesture_detector.dart';
+import 'package:sheets/widgets/sheet_mouse_cursor.dart';
 import 'package:sheets/widgets/sheet_scrollable.dart';
+import 'package:sheets/selection/sheet_selection_gesture_detector.dart';
 
 class SheetPage extends StatefulWidget {
   const SheetPage({super.key});
@@ -91,10 +91,13 @@ class SheetState extends State<Sheet> {
         ),
         child: SheetScrollable(
           scrollController: sheetController.scroll,
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              return SheetContent(sheetController: sheetController);
-            },
+          child: SheetMouseCursor(
+            cursor: sheetController.mouse.cursor,
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return SheetContent(sheetController: sheetController);
+              },
+            ),
           ),
         ),
       ),
@@ -109,8 +112,6 @@ class SheetState extends State<Sheet> {
     }
     return false;
   }
-
-  SheetMouseListener get mouseListener => sheetController.mouse;
 }
 
 class SheetContent extends StatefulWidget {
@@ -151,7 +152,7 @@ class SheetContentState extends State<SheetContent> {
             child: SheetGrid(sheetController: widget.sheetController),
           ),
           Positioned.fill(
-            child: SheetGestureDetector(sheetController: widget.sheetController),
+            child: SheetSelectionGestureDetector(sheetController: widget.sheetController),
           ),
         ],
       ),

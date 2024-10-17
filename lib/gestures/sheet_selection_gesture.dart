@@ -4,20 +4,16 @@ import 'package:sheets/controller/sheet_controller.dart';
 import 'package:sheets/core/sheet_item_index.dart';
 import 'package:sheets/gestures/sheet_drag_gesture.dart';
 import 'package:sheets/selection/sheet_selection.dart';
+import 'package:sheets/viewport/viewport_item.dart';
 
 class SheetSelectionStartGesture extends SheetDragGesture {
-  final SheetDragDetails startDetails;
+  final ViewportItem selectionStart;
 
-  SheetSelectionStartGesture(this.startDetails);
-
-  factory SheetSelectionStartGesture.from(SheetDragStartGesture dragGesture) {
-    return SheetSelectionStartGesture(dragGesture.startDetails);
-  }
+  SheetSelectionStartGesture(this.selectionStart);
 
   @override
   void resolve(SheetController controller) {
-    SheetIndex? hoveredIndex = startDetails.hoveredItem?.index;
-    if (hoveredIndex == null) return;
+    SheetIndex? hoveredIndex = selectionStart.index;
 
     if (controller.keyboard.areKeysPressed(<LogicalKeyboardKey>[LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.shiftLeft])) {
       ModifySelectionRangeBehavior(hoveredIndex).invoke(controller);
@@ -33,43 +29,40 @@ class SheetSelectionStartGesture extends SheetDragGesture {
   }
 }
 
-class SheetSelectionUpdateGesture extends SheetDragUpdateGesture {
-  SheetSelectionUpdateGesture(super.endDetails, {required super.startDetails});
+class SheetSelectionUpdateGesture extends SheetDragGesture {
+  final ViewportItem selectionStart;
+  final ViewportItem selectionEnd;
 
-  factory SheetSelectionUpdateGesture.from(SheetDragUpdateGesture dragGesture) {
-    return SheetSelectionUpdateGesture(dragGesture.endDetails, startDetails: dragGesture.startDetails);
-  }
-
-  @override
-  List<Object?> get props => <Object?>[endDetails, startDetails];
+  SheetSelectionUpdateGesture(this.selectionStart, this.selectionEnd);
 
   @override
   void resolve(SheetController controller) {
-    SheetIndex? hoveredIndex = endDetails.hoveredItem?.index;
-    if (hoveredIndex == null) return;
+    SheetIndex selectionEndIndex = selectionEnd.index;
 
     SheetSelection selection = controller.selection.value;
     if (selection.selectionStart is CellIndex) {
-
-      if (hoveredIndex is ColumnIndex) {
-        hoveredIndex = CellIndex(rowIndex: controller.viewport.visibleContent.rows.first.index, columnIndex: hoveredIndex).move(-1, 0);
-      } else if (hoveredIndex is RowIndex) {
-        hoveredIndex = CellIndex(rowIndex: hoveredIndex, columnIndex: controller.viewport.visibleContent.columns.first.index).move(0, -1);
+      if (selectionEndIndex is ColumnIndex) {
+        selectionEndIndex = CellIndex(rowIndex: controller.viewport.visibleContent.rows.first.index, columnIndex: selectionEndIndex).move(-1, 0);
+      } else if (selectionEndIndex is RowIndex) {
+        selectionEndIndex = CellIndex(rowIndex: selectionEndIndex, columnIndex: controller.viewport.visibleContent.columns.first.index).move(0, -1);
       }
     }
 
     if (controller.keyboard.areKeysPressed(<LogicalKeyboardKey>[LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.shiftLeft])) {
-      ModifySelectionRangeBehavior(hoveredIndex).invoke(controller);
+      ModifySelectionRangeBehavior(selectionEndIndex).invoke(controller);
     } else if (controller.keyboard.isKeyPressed(LogicalKeyboardKey.controlLeft)) {
-      ModifySelectionRangeBehavior(hoveredIndex).invoke(controller);
+      ModifySelectionRangeBehavior(selectionEndIndex).invoke(controller);
     } else if (controller.keyboard.isKeyPressed(LogicalKeyboardKey.shiftLeft)) {
-      ModifySelectionRangeBehavior(hoveredIndex).invoke(controller);
+      ModifySelectionRangeBehavior(selectionEndIndex).invoke(controller);
     } else {
-      RangeSelectionBehavior(hoveredIndex).invoke(controller);
+      RangeSelectionBehavior(selectionEndIndex).invoke(controller);
     }
 
-    controller.viewport.ensureIndexFullyVisible(hoveredIndex);
+    controller.viewport.ensureIndexFullyVisible(selectionEndIndex);
   }
+
+  @override
+  List<Object?> get props => <Object?>[selectionStart, selectionEnd];
 }
 
 class SheetSelectionEndGesture extends SheetDragGesture {

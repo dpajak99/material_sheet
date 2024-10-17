@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sheets/listeners/mouse_listener.dart';
 import 'package:sheets/recognizers/pan_hold_recognizer.dart';
-import 'package:sheets/sheet.dart';
+import 'package:sheets/widgets/sheet_mouse_cursor.dart';
 
 class SheetDraggable extends StatefulWidget {
   final Size actionSize;
@@ -36,7 +35,7 @@ class SheetDraggable extends StatefulWidget {
 
 class _SheetDraggableState extends State<SheetDraggable> {
   final PanHoldRecognizer _panHoldRecognizer = PanHoldRecognizer();
-  late final SheetMouseListener mouse = Sheet.of(context).mouseListener;
+  late final SheetMouseCursorState cursor = SheetMouseCursor.of(context);
 
   Offset _dragDelta = Offset.zero;
   bool _hoverInProgress = false;
@@ -78,9 +77,8 @@ class _SheetDraggableState extends State<SheetDraggable> {
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    mouse.disable();
-    mouse.setCursor(widget.cursor);
-    mouse.setGlobalOffset(event.position);
+    cursor.childMouseRegionActive = true;
+    cursor.setCursor(widget.cursor);
 
     _onPanStart(event);
   }
@@ -111,15 +109,15 @@ class _SheetDraggableState extends State<SheetDraggable> {
     bool barrierEndReached = false;
 
     if (widget.limitDragToBounds) {
-      Offset dragBarrierEnd = Offset(mouse.viewport.innerRectLocal.right, mouse.viewport.innerRectLocal.bottom);
+      Offset dragBarrierEnd = Offset(cursor.viewport.innerRectLocal.right, cursor.viewport.innerRectLocal.bottom);
       barrierEndReached = event.position.dy > dragBarrierEnd.dy || event.position.dx > dragBarrierEnd.dx;
     }
 
     if (barrierStartReached || barrierEndReached) {
-      mouse.resetCursor();
+      cursor.resetCursor();
       return;
     } else {
-      mouse.setCursor(widget.cursor);
+      cursor.setCursor(widget.cursor);
     }
 
     _dragDelta += event.delta;
@@ -133,23 +131,23 @@ class _SheetDraggableState extends State<SheetDraggable> {
 
   void _setHovered() {
     if (_dragInProgress) return;
-    if (mouse.nativeDragging) return;
-    if (mouse.disabled) return;
+    if (cursor.nativeDragging) return;
+    if (cursor.disabled) return;
 
-    mouse.customTapHovered = true;
+    cursor.customTapHovered = true;
     if (_hoverInProgress == false) {
       setState(() {
         _hoverInProgress = true;
         _dragInProgress = false;
       });
-      mouse.setCursor(widget.cursor);
+      cursor.setCursor(widget.cursor);
     }
   }
 
   void _resetCursor() {
-    mouse.enable();
-    mouse.customTapHovered = false;
-    mouse.resetCursor();
+    cursor.enable();
+    cursor.customTapHovered = false;
+    cursor.resetCursor();
 
     _hoverInProgress = false;
     _dragInProgress = false;

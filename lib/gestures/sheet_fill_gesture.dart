@@ -2,6 +2,7 @@ import 'package:sheets/behaviors/selection_behaviors.dart';
 import 'package:sheets/controller/sheet_controller.dart';
 import 'package:sheets/gestures/sheet_drag_gesture.dart';
 import 'package:sheets/gestures/sheet_gesture.dart';
+import 'package:sheets/viewport/viewport_item.dart';
 
 abstract class SheetFillGesture extends SheetGesture {}
 
@@ -14,18 +15,17 @@ class SheetFillStartGesture extends SheetFillGesture {
 }
 
 class SheetFillUpdateGesture extends SheetFillGesture {
-  final SheetDragDetails endDetails;
+  final ViewportItem selectionEnd;
 
-  SheetFillUpdateGesture({required this.endDetails});
+  SheetFillUpdateGesture(this.selectionEnd);
 
   @override
   void resolve(SheetController controller) {
-    if (endDetails.hoveredItem == null) return;
-    FillSelectionBehavior(endDetails.hoveredItem!.index).invoke(controller);
+    FillSelectionBehavior(selectionEnd.index).invoke(controller);
   }
 
   @override
-  List<Object?> get props => <Object?>[endDetails];
+  List<Object?> get props => <Object?>[selectionEnd];
 }
 
 class SheetFillEndGesture extends SheetFillGesture {

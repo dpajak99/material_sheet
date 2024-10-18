@@ -3,10 +3,11 @@ import 'package:sheets/behaviors/selection_behaviors.dart';
 import 'package:sheets/controller/sheet_controller.dart';
 import 'package:sheets/core/sheet_item_index.dart';
 import 'package:sheets/gestures/sheet_drag_gesture.dart';
+import 'package:sheets/gestures/sheet_gesture.dart';
 import 'package:sheets/selection/sheet_selection.dart';
 import 'package:sheets/viewport/viewport_item.dart';
 
-class SheetSelectionStartGesture extends SheetDragGesture {
+class SheetSelectionStartGesture extends SheetGesture {
   final ViewportItem selectionStart;
 
   SheetSelectionStartGesture(this.selectionStart);
@@ -27,9 +28,12 @@ class SheetSelectionStartGesture extends SheetDragGesture {
 
     controller.viewport.ensureIndexFullyVisible(hoveredIndex);
   }
+
+  @override
+  List<Object?> get props => <Object?>[selectionStart];
 }
 
-class SheetSelectionUpdateGesture extends SheetDragGesture {
+class SheetSelectionUpdateGesture extends SheetGesture {
   final ViewportItem selectionStart;
   final ViewportItem selectionEnd;
 
@@ -65,7 +69,7 @@ class SheetSelectionUpdateGesture extends SheetDragGesture {
   List<Object?> get props => <Object?>[selectionStart, selectionEnd];
 }
 
-class SheetSelectionEndGesture extends SheetDragGesture {
+class SheetSelectionEndGesture extends SheetGesture {
   SheetSelectionEndGesture();
 
   @override
@@ -77,7 +81,7 @@ class SheetSelectionEndGesture extends SheetDragGesture {
   List<Object?> get props => <Object?>[];
 }
 
-class SheetSelectionMoveGesture extends SheetDragGesture {
+class SheetSelectionMoveGesture extends SheetGesture {
   final int dx;
   final int dy;
 

@@ -11,9 +11,8 @@ import 'package:sheets/layers/sheet_selection_layer.dart';
 import 'package:sheets/core/config/sheet_constants.dart';
 import 'package:sheets/widgets/sections/sheet_section_details_bar.dart';
 import 'package:sheets/widgets/sections/sheet_section_toolbar.dart';
-import 'package:sheets/widgets/sheet_mouse_cursor.dart';
+import 'package:sheets/widgets/sheet_mouse_gesture_detector.dart';
 import 'package:sheets/widgets/sheet_scrollable.dart';
-import 'package:sheets/selection/sheet_selection_gesture_detector.dart';
 
 class SheetPage extends StatefulWidget {
   const SheetPage({super.key});
@@ -91,8 +90,8 @@ class SheetState extends State<Sheet> {
         ),
         child: SheetScrollable(
           scrollController: sheetController.scroll,
-          child: SheetMouseCursor(
-            cursor: sheetController.mouse.cursor,
+          child: SheetMouseGestureDetector(
+            mouseListener: sheetController.mouse,
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 return SheetContent(sheetController: sheetController);
@@ -145,17 +144,7 @@ class SheetContentState extends State<SheetContent> {
   Widget build(BuildContext context) {
     return Container(
       key: _sheetViewportKey,
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          Positioned.fill(
-            child: SheetGrid(sheetController: widget.sheetController),
-          ),
-          Positioned.fill(
-            child: SheetSelectionGestureDetector(sheetController: widget.sheetController),
-          ),
-        ],
-      ),
+      child: SheetGrid(sheetController: widget.sheetController),
     );
   }
 
@@ -198,7 +187,7 @@ class SheetGrid extends StatelessWidget {
         ),
         Positioned.fill(child: SheetCellsLayer(sheetController: sheetController)),
         Positioned.fill(child: SheetHeadersLayer(sheetController: sheetController)),
-        Positioned.fill(child: HeadersResizerLayer(sheetController: sheetController)),
+        // Positioned.fill(child: HeadersResizerLayer(sheetController: sheetController)),
         Positioned.fill(child: SheetSelectionLayer(sheetController: sheetController)),
         Positioned.fill(child: SheetFillHandleLayer(sheetController: sheetController)),
         Positioned(

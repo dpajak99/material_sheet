@@ -15,9 +15,10 @@ class SheetFillStartGesture extends SheetFillGesture {
 }
 
 class SheetFillUpdateGesture extends SheetFillGesture {
+  final ViewportItem selectionStart;
   final ViewportItem selectionEnd;
 
-  SheetFillUpdateGesture(this.selectionEnd);
+  SheetFillUpdateGesture(this.selectionStart, this.selectionEnd);
 
   @override
   void resolve(SheetController controller) {

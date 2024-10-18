@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sheets/controller/sheet_controller.dart';
+import 'package:sheets/recognizers/mouse_action_recognizer.dart';
 import 'package:sheets/selection/sheet_selection.dart';
 import 'package:sheets/selection/sheet_selection_renderer.dart';
 import 'package:sheets/widgets/sheet_draggable.dart';
@@ -47,23 +48,21 @@ class SheetFillHandleLayerState extends State<SheetFillHandleLayer> {
     return Stack(
       children: <Widget>[
         if (_visible && _offset != null)
-          Positioned(
-            left: _offset!.dx - _size / 2,
-            top: _offset!.dy - _size / 2,
-            child: SheetDraggable(
-              actionSize: const Size(_size, _size),
-              cursor: SystemMouseCursors.precise,
-              onDragStart: (_) {
-                widget.sheetController.mouse.fillStart();
-              },
-              onDragDeltaChanged: (_) {
-                widget.sheetController.mouse.fillUpdate();
-              },
-              onDragEnd: (_) {
-                widget.sheetController.mouse.fillEnd();
-              },
-              child: const FillHandle(size: _size),
-            ),
+          Builder(
+            builder: (BuildContext context) {
+              Rect draggableAreaRect = Rect.fromLTWH(_offset!.dx - _size / 2, _offset!.dy - _size / 2, _size, _size);
+
+              return Positioned(
+                left: draggableAreaRect.left,
+                top: draggableAreaRect.top,
+                child: SheetDraggable(
+                  draggableAreaRect: draggableAreaRect,
+                  mouseListener: widget.sheetController.mouse,
+                  action: MouseFillAction(),
+                  child: const FillHandle(size: _size),
+                ),
+              );
+            },
           ),
       ],
     );

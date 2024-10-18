@@ -5,14 +5,31 @@ import 'package:sheets/core/sheet_item_index.dart';
 import 'package:sheets/gestures/sheet_gesture.dart';
 import 'package:sheets/viewport/viewport_item.dart';
 
-abstract class SheetDragGesture extends SheetGesture {
+abstract class SheetMouseGesture extends SheetGesture {
+  Offset get startOffset;
+  Offset get currentOffset;
 
   @override
   List<Object?> get props => <Object?>[];
 }
 
-class SheetDragStartGesture extends SheetDragGesture {
-  final SheetDragDetails startDetails;
+class SheetMouseMoveGesture extends SheetMouseGesture {
+  final Offset localOffset;
+
+  SheetMouseMoveGesture(this.localOffset);
+
+  @override
+  void resolve(SheetController controller) {}
+
+  @override
+  Offset get startOffset => localOffset;
+
+  @override
+  Offset get currentOffset => localOffset;
+}
+
+class SheetDragStartGesture extends SheetMouseGesture {
+  final MouseCursorDetails startDetails;
 
   SheetDragStartGesture(this.startDetails);
 
@@ -20,51 +37,64 @@ class SheetDragStartGesture extends SheetDragGesture {
   void resolve(SheetController controller) {}
 
   @override
+  Offset get startOffset => startDetails.localOffset;
+
+  @override
+  Offset get currentOffset => startDetails.localOffset;
+
+  @override
   List<Object?> get props => <Object?>[startDetails];
 }
 
-class SheetDragUpdateGesture extends SheetDragGesture {
-  final SheetDragDetails startDetails;
-  final SheetDragDetails endDetails;
+class SheetDragUpdateGesture extends SheetMouseGesture {
+  final MouseCursorDetails startDetails;
+  final MouseCursorDetails updateDetails;
 
-  SheetDragUpdateGesture(this.endDetails, {required this.startDetails});
-
-  @override
-  void resolve(SheetController controller) {
-  }
+  SheetDragUpdateGesture({ required this.startDetails, required this.updateDetails});
 
   @override
-  List<Object?> get props => <Object?>[endDetails, startDetails];
+  void resolve(SheetController controller) {}
+
+  @override
+  Offset get startOffset => startDetails.localOffset;
+
+  @override
+  Offset get currentOffset => updateDetails.localOffset;
+
+  @override
+  List<Object?> get props => <Object?>[updateDetails, startDetails];
 }
 
-class SheetDragEndGesture extends SheetDragGesture {
+class SheetDragEndGesture extends SheetMouseGesture {
+  final MouseCursorDetails startDetails;
+  final MouseCursorDetails endDetails;
+  
+  SheetDragEndGesture({ required this.startDetails, required this.endDetails});
+  
+  @override
+  void resolve(SheetController controller) {}
 
   @override
-  void resolve(SheetController controller) {
-  }
+  Offset get startOffset => startDetails.localOffset;
+
+  @override
+  Offset get currentOffset => endDetails.localOffset;
 
   @override
   List<Object?> get props => <Object?>[];
 }
 
-class SheetDragDetails with EquatableMixin {
-  final Offset mousePosition;
+class MouseCursorDetails with EquatableMixin {
+  final Offset localOffset;
+  final Offset scrollPosition;
   final ViewportItem? hoveredItem;
 
-  SheetDragDetails({
-    required this.mousePosition,
+  MouseCursorDetails({
+    required this.localOffset,
+    required this.scrollPosition,
     required this.hoveredItem,
   });
 
-  SheetIndex get hoveredItemIndex => hoveredItem!.index;
-
-  SheetDragDetails.create(Offset mousePosition, [ViewportItem? hoveredItem])
-      : this(
-          mousePosition: mousePosition,
-          hoveredItem: hoveredItem,
-        );
-
   @override
-  List<Object?> get props => <Object?>[mousePosition, hoveredItem];
+  List<Object?> get props => <Object?>[localOffset, scrollPosition, hoveredItem];
 }
-

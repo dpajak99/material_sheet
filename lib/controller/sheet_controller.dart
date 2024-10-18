@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sheets/gestures/sheet_selection_gesture.dart';
+import 'package:sheets/recognizers/mouse_action_recognizer.dart';
 import 'package:sheets/selection/selection_state.dart';
 import 'package:sheets/core/sheet_item_index.dart';
 import 'package:sheets/core/sheet_properties.dart';
@@ -9,16 +10,19 @@ import 'package:sheets/selection/sheet_selection.dart';
 import 'package:sheets/viewport/sheet_viewport.dart';
 import 'package:sheets/gestures/sheet_resize_gestures.dart';
 import 'package:sheets/listeners/keyboard_listener.dart';
+import 'package:sheets/widgets/sheet_mouse_gesture_detector.dart';
 
 class SheetController {
   SheetController({
     required this.properties,
   }) {
-    cursor = ValueNotifier<SystemMouseCursor>(SystemMouseCursors.basic);
-
     scroll = SheetScrollController();
     viewport = SheetViewport(properties, scroll);
     keyboard = SheetKeyboardListener();
+    mouse = MouseListener(
+      mouseActionRecognizers: <MouseActionRecognizer>[MouseSelectionRecognizer()],
+      sheetController: this,
+    );
     selection = SelectionState.defaultSelection();
 
     _setupKeyboardShortcuts();
@@ -28,7 +32,8 @@ class SheetController {
   late final SheetViewport viewport;
   late final SheetScrollController scroll;
   late final SheetKeyboardListener keyboard;
-  late final ValueNotifier<SystemMouseCursor> cursor;
+  late final MouseListener mouse;
+
   late SelectionState selection;
 
   void dispose() {
@@ -37,15 +42,6 @@ class SheetController {
 
   void select(SheetSelection customSelection) {
     selection.update(customSelection);
-  }
-
-
-  void setCursor(SystemMouseCursor systemMouseCursor) {
-    cursor.value = systemMouseCursor;
-  }
-
-  void resetCursor() {
-    cursor.value = SystemMouseCursors.basic;
   }
 
   void resizeColumnBy(ColumnIndex column, double delta) {

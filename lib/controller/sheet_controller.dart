@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sheets/gestures/sheet_selection_gesture.dart';
 import 'package:sheets/recognizers/mouse_action_recognizer.dart';

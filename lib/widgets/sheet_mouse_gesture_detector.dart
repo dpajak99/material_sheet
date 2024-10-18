@@ -84,8 +84,13 @@ class MouseListener extends Streamable<SheetMouseGesture> {
     mouseActionRecognizers.insert(0, recognizer);
   }
 
-  void removeRecognizer(MouseActionRecognizer recognizer) {
-    mouseActionRecognizers.remove(recognizer);
+  Future<void> removeRecognizer(MouseActionRecognizer recognizer) async {
+    if(recognizer is CustomDragRecognizer && recognizer.action.isActive) {
+      await recognizer.action.future;
+      mouseActionRecognizers.remove(recognizer);
+    } else {
+      mouseActionRecognizers.remove(recognizer);
+    }
   }
 
   void setCursor(SystemMouseCursor systemMouseCursor) {
@@ -148,10 +153,17 @@ class MouseListener extends Streamable<SheetMouseGesture> {
   }
 
   void _resolveGesture(SheetMouseGesture gesture) {
+    List<CustomDragRecognizer> customDragRecognizers = mouseActionRecognizers.whereType<CustomDragRecognizer>().toList();
+    for(CustomDragRecognizer recognizer in customDragRecognizers) {
+      if(recognizer.action.isActive) {
+        recognizer.action.resolve(sheetController, gesture);
+        return;
+      }
+    }
+
     for(MouseActionRecognizer recognizer in mouseActionRecognizers) {
       MouseAction? action = recognizer.recognize(sheetController, gesture);
       if (action != null) {
-        print('Action: $action');
         action.resolve(sheetController, gesture);
         return;
       }

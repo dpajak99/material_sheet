@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
 import 'package:sheets/controller/sheet_controller.dart';
 import 'package:sheets/gestures/sheet_drag_gesture.dart';
@@ -6,13 +8,16 @@ import 'package:sheets/gestures/sheet_fill_gesture.dart';
 import 'package:sheets/gestures/sheet_selection_gesture.dart';
 import 'package:sheets/viewport/viewport_item.dart';
 
-abstract class MouseActionRecognizer {
+abstract class MouseActionRecognizer with EquatableMixin{
   MouseAction? recognize(SheetController controller, SheetMouseGesture gesture);
 }
 
 class MouseSelectionRecognizer extends MouseActionRecognizer {
   @override
   MouseAction? recognize(SheetController controller, SheetMouseGesture gesture) => MouseSelectionAction();
+
+  @override
+  List<Object?> get props => <Object?>[];
 }
 
 class CustomDragRecognizer extends MouseActionRecognizer {
@@ -46,17 +51,27 @@ class CustomDragRecognizer extends MouseActionRecognizer {
     }
     _previousHovered = currentHovered;
   }
+
+  @override
+  List<Object?> get props => <Object?>[action];
 }
 
 abstract class CustomDragAction extends MouseAction {
-  bool _active = false;
+  Completer<void>? _completer;
   
   SystemMouseCursor get hoverCursor;
   
-  bool get isActive => _active;
+  bool get isActive => _completer != null && _completer!.isCompleted == false;
+
+  Future<void>? get future => _completer?.future;
   
   void setActive(bool active) {
-    _active = active;
+    if(active) {
+      _completer = Completer<void>();
+    } else {
+      _completer?.complete();
+      _completer = null;
+    }
   }
 }
 
@@ -76,7 +91,6 @@ class MouseSelectionAction extends MouseAction {
   }
 
   void _startSelection(SheetController controller, SheetDragStartGesture gesture) {
-    print('Selection start');
     ViewportItem? selectionStart = gesture.startDetails.hoveredItem;
     if (selectionStart == null) return;
 
@@ -84,7 +98,6 @@ class MouseSelectionAction extends MouseAction {
   }
 
   void _updateSelection(SheetController controller, SheetDragUpdateGesture gesture) {
-    print('Selection update');
     ViewportItem? selectionStart = gesture.startDetails.hoveredItem;
     ViewportItem? selectionUpdate = gesture.updateDetails.hoveredItem;
     if (selectionStart == null || selectionUpdate == null) return;
@@ -93,7 +106,6 @@ class MouseSelectionAction extends MouseAction {
   }
 
   void _endSelection(SheetController controller, SheetDragEndGesture gesture) {
-    print('Selection end');
     SheetSelectionEndGesture().resolve(controller);
   }
 }
@@ -114,7 +126,6 @@ class MouseFillAction extends CustomDragAction {
 
   void _startFill(SheetController controller, SheetDragStartGesture gesture) {
     setActive(true);
-    print('Fill start');
     ViewportItem? selectionStart = gesture.startDetails.hoveredItem;
     if (selectionStart == null) return;
 
@@ -123,7 +134,6 @@ class MouseFillAction extends CustomDragAction {
   }
 
   void _updateFill(SheetController controller, SheetDragUpdateGesture gesture) {
-    print('Fill update');
     ViewportItem? selectionStart = gesture.startDetails.hoveredItem;
     ViewportItem? selectionUpdate = gesture.updateDetails.hoveredItem;
     if (selectionStart == null || selectionUpdate == null) return;
@@ -133,7 +143,6 @@ class MouseFillAction extends CustomDragAction {
 
   void _endFill(SheetController controller, SheetDragEndGesture gesture) {
     setActive(false);
-    print('Fill end');
     SheetFillEndGesture().resolve(controller);
     controller.mouse.resetCursor();
   }

@@ -1,6 +1,5 @@
 import 'package:sheets/behaviors/selection_behaviors.dart';
 import 'package:sheets/controller/sheet_controller.dart';
-import 'package:sheets/gestures/sheet_drag_gesture.dart';
 import 'package:sheets/gestures/sheet_gesture.dart';
 import 'package:sheets/viewport/viewport_item.dart';
 
@@ -23,6 +22,8 @@ class SheetFillUpdateGesture extends SheetFillGesture {
   @override
   void resolve(SheetController controller) {
     FillSelectionBehavior(selectionEnd.index).invoke(controller);
+
+    controller.viewport.ensureIndexFullyVisible(selectionEnd.index);
   }
 
   @override

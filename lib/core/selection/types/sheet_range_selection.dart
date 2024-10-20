@@ -15,7 +15,7 @@ class SheetRangeSelection<T extends SheetIndex> extends SheetSelectionBase {
     super.completed = true,
   }) : super(startIndex: startIndex, endIndex: endIndex);
 
-  factory SheetRangeSelection.single(T index, {required bool completed}) {
+  factory SheetRangeSelection.single(T index, {bool completed = true}) {
     return SheetRangeSelection<T>(index, index, completed: completed);
   }
 

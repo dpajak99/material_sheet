@@ -55,6 +55,8 @@ class CellIndex extends SheetIndex {
 
   CellIndex({required this.row, required this.column});
 
+  CellIndex.raw(int row, int column) : row = RowIndex(row), column = ColumnIndex(column);
+
   factory CellIndex.fromColumnMin(ColumnIndex columnIndex) {
     return CellIndex(row: RowIndex.zero, column: columnIndex);
   }

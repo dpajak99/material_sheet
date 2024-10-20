@@ -38,7 +38,7 @@ abstract interface class SheetSelection {
 
   SelectionStatus isColumnSelected(ColumnIndex columnIndex);
 
-  SheetSelection append(SheetSelection appendedSelection);
+  SheetMultiSelection append(SheetSelection appendedSelection);
 
   SheetSelection modifyEnd(SheetIndex itemIndex);
 
@@ -117,7 +117,7 @@ abstract class SheetSelectionBase with EquatableMixin implements SheetSelection 
   }
 
   @override
-  SheetSelection append(SheetSelection appendedSelection) {
+  SheetMultiSelection append(SheetSelection appendedSelection) {
     return SheetMultiSelection(selections: <SheetSelection>[this, appendedSelection]);
   }
 }
